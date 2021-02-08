@@ -171,6 +171,7 @@ interface InitOptions {
  * @param options
  */
 export async function initDocer(app: Opine, options?: InitOptions) {
+  console.log(import.meta.url);
   const __dirname = new URL(".", import.meta.url).pathname;
   console.log(__dirname);
 

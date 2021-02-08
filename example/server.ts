@@ -4,7 +4,7 @@ import {
   serveStatic,
 } from "https://deno.land/x/opine@1.1.0/mod.ts";
 
-import { initDocer } from "../mod.ts";
+import { initDocer } from "https://raw.githubusercontent.com/pedropalhari/opine-swagger/master/mod.ts";
 import { initExample } from "./routes/Example.ts";
 
 const app = opine();
