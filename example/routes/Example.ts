@@ -1,6 +1,5 @@
 import { opine } from "https://deno.land/x/opine@1.1.0/src/opine.ts";
-import { docerApp } from "../../mod.ts";
-import * as J from "https://deno.land/x/jsonschema/jsonschema.ts";
+import { docerApp, J } from "../../mod.ts";
 
 type ExampleType = J.TypeOf<typeof Example>;
 const Example = J.type({

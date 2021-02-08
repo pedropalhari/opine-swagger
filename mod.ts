@@ -1,12 +1,5 @@
-import {
-  IRouterMatcher,
-  Opine,
-  ParamsDictionary,
-  RequestHandler,
-  Request,
-  Response,
-} from "https://deno.land/x/opine@1.1.0/mod.ts";
 import * as J from "https://deno.land/x/jsonschema/jsonschema.ts";
+import { Opine, Response } from "https://deno.land/x/opine@1.1.0/mod.ts";
 
 /**
  * Generic to be passed to the methods, so we can
@@ -197,3 +190,5 @@ let BASE_DOC: any = {
   paths: {},
   definitions: {},
 };
+
+export { J };
