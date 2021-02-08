@@ -4,13 +4,11 @@ import {
   serveStatic,
 } from "https://deno.land/x/opine@1.1.0/mod.ts";
 
-import { docerApp, initDocer } from "../mod.ts";
+import { initDocer } from "../mod.ts";
 import { initExample } from "./routes/Example.ts";
 
 const app = opine();
-
 app.use(json());
-app.use(serveStatic("swagger"));
 
 let routes = [{ init: initExample, prefix: "/example" }];
 
@@ -18,7 +16,7 @@ routes.forEach((r) => app.use(r.prefix, r.init()));
 
 app.listen(3000);
 
-await initDocer({
+await initDocer(app, {
   info: {
     title: "Example API",
     description: "This is an API created for demonstration purposes",

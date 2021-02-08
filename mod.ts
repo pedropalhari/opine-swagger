@@ -1,5 +1,9 @@
 import * as J from "https://deno.land/x/jsonschema/jsonschema.ts";
-import { Opine, Response } from "https://deno.land/x/opine@1.1.0/mod.ts";
+import {
+  Opine,
+  Response,
+  serveStatic,
+} from "https://deno.land/x/opine@1.1.0/mod.ts";
 
 /**
  * Generic to be passed to the methods, so we can
@@ -166,7 +170,12 @@ interface InitOptions {
  * is called
  * @param options
  */
-export async function initDocer(options?: InitOptions) {
+export async function initDocer(app: Opine, options?: InitOptions) {
+  const __dirname = new URL(".", import.meta.url).pathname;
+  console.log(__dirname);
+
+  app.use(serveStatic("swagger"));
+
   let swaggerJsonDoc = { ...BASE_DOC, ...options };
   await Deno.writeTextFile(
     "./swagger/docs/docs.json",
