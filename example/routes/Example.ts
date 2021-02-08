@@ -2,7 +2,7 @@ import { opine } from "https://deno.land/x/opine@1.1.0/src/opine.ts";
 import {
   docerApp,
   J,
-} from "https://raw.githubusercontent.com/pedropalhari/opine-swagger/master/mod.ts";
+} from "../../mod.ts";
 
 type ExampleType = J.TypeOf<typeof Example>;
 const Example = J.type({

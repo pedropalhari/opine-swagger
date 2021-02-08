@@ -2,6 +2,6 @@
   "scripts": {
     "start": "deno run -A --no-check example/server.ts",
     "dev": "deno run -A --no-check --unstable --watch example/server.ts",
-    "cache": "deno cache --no-check example/server.ts"
+    "cache": "deno cache --no-check --reload example/server.ts"
   }
 }

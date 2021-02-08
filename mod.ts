@@ -1,9 +1,19 @@
 import * as J from "https://deno.land/x/jsonschema/jsonschema.ts";
 import {
   Opine,
+  request,
   Response,
   serveStatic,
 } from "https://deno.land/x/opine@1.1.0/mod.ts";
+import { MultiProgressBar } from "https://deno.land/x/progress@v1.2.3/mod.ts";
+
+const bars = new MultiProgressBar({
+  title: "Swagger Download",
+  // clear: true,
+  complete: "=",
+  incomplete: "-",
+  display: "[:bar] :text :percent :time :completed/:total bytes",
+});
 
 /**
  * Generic to be passed to the methods, so we can
@@ -166,14 +176,115 @@ interface InitOptions {
 }
 
 /**
+ * Function that downloads swagger to test
+ */
+async function downloadSwagger() {
+  let swaggerFolderExists = false;
+  try {
+    // If it doesn't exists, it throws
+    await Deno.stat("./swagger");
+    swaggerFolderExists = true;
+  } catch (err) {}
+
+  let docsFolderExists = false;
+  try {
+    await Deno.stat("./swagger/docs");
+    docsFolderExists = true;
+  } catch (err) {}
+
+  let swaggerExists = false;
+  try {
+    await Deno.stat("./swagger/docs/swagger-ui.js");
+    swaggerExists = true;
+  } catch (err) {}
+
+  if (!swaggerFolderExists) await Deno.mkdir("./swagger");
+
+  if (!docsFolderExists) await Deno.mkdir("./swagger/docs");
+
+  if (!swaggerExists) {
+    console.log("Installing swagger, this only happens once!");
+
+    let response = await fetch(
+      `https://codeload.github.com/swagger-api/swagger-ui/zip/v3.42.0`
+    );
+
+    const reader = response.body?.getReader();
+
+    if (!reader) return;
+
+    // Step 2: get total length
+    const contentLength = response.headers.get("Content-Length");
+
+    // Step 3: read the data
+    let receivedLength = 0; // received that many bytes at the moment
+    let chunks = []; // array of received binary chunks (comprises the body)
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      if (!value) return;
+
+      chunks.push(value);
+      receivedLength += value.length;
+
+      bars.render([
+        {
+          completed: receivedLength,
+          total: parseInt(contentLength!),
+          text: "swagger-v3.42.0.zip",
+        },
+      ]);
+    }
+
+    // Step 4: concatenate chunks into single Uint8Array
+    let chunksAll = new Uint8Array(receivedLength); // (4.1)
+    let position = 0;
+    for (let chunk of chunks) {
+      chunksAll.set(chunk, position); // (4.2)
+      position += chunk.length;
+    }
+
+    await Deno.writeFile("./swagger-temp.zip", new Uint8Array(chunksAll));
+
+    console.log("\n\n");
+
+    let process = await Deno.run({
+      cmd: ["unzip", "./swagger-temp.zip", "-d", "./swagger-temp"],
+    });
+
+    await process.status();
+    process.close();
+
+    await Deno.rename(
+      "./swagger-temp/swagger-ui-3.42.0/dist",
+      "./swagger/docs"
+    );
+
+    console.log("\n\n Removing temporary files");
+
+    await Deno.remove("./swagger-temp.zip");
+    await Deno.remove("./swagger-temp", { recursive: true });
+
+    let swaggerIndex = await Deno.readTextFile("./swagger/docs/index.html");
+    swaggerIndex = swaggerIndex.replace(
+      '"https://petstore.swagger.io/v2/swagger.json"',
+      "`${window.location.origin}/docs/docs.json`"
+    );
+    await Deno.writeTextFileSync("./swagger/docs/index.html", swaggerIndex);
+  }
+}
+
+/**
  * This initializes the library, it **must** come after every <method>Doc(...) function
  * is called
  * @param options
  */
 export async function initDocer(app: Opine, options?: InitOptions) {
-  console.log(import.meta.url);
-  const __dirname = new URL(".", import.meta.url).pathname;
-  console.log(__dirname);
+  await downloadSwagger();
 
   app.use(serveStatic("swagger"));
 
